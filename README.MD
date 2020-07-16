@@ -28,6 +28,6 @@ Change the list of versions in `config.sh` file.
 2. Run <pre>npm install react-native-render-html react-native-webview</pre> into each version folder. `react-native-render-html` version can be changed with the `reactNativeRenderHTMLVersion` variable in the `config.sh` file.
 3. Copy the files from `template` folder into each version folder.
 4. Run the following into each version folder: <pre>
-npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output /tmp/rn$version.js --assets-dest /tmp/android/
+npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output .build/rn$version.js --assets-dest .build/android
 </pre> If the command fails, the test fails for this version. Otherwise, it passes.
 
