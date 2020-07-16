@@ -7,7 +7,6 @@ You need a POSIX compliant system (MacOS, Linux, WSL) and the following utilitie
 - bash
 - npm and nodejs
 - rsync
-- grep
 
 ## How to run?
 
