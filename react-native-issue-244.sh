@@ -3,11 +3,10 @@
 # shellcheck source=config.sh
 . config.sh
 
-bundleDir=".build"
-
 prepareVersion() {
   version="$1"
   targetDir="versions/$1"
+  echo -e "\e[1mInstalling React Native project for version $version in folder $targetDir\e[22m"
   ./react-native-version.sh "$1" "$targetDir"
 }
 
@@ -15,14 +14,23 @@ installRNRH() {
   version="$1"
   targetDir="versions/$1"
   currentVersion=''
-  pushd "$targetDir" || exit 2
+  deps=("${dependencies[@]}")
+  pushd "$targetDir" >/dev/null || exit 2
   if [ -d node_modules/react-native-render-html ]; then
     currentVersion=$(node -p "require('react-native-render-html/package.json').version")
   fi
   if [ -z "$currentVersion" ] || [ "$currentVersion" != "$reactNativeRenderHTMLVersion" ]; then
-    npm install --save-exact "react-native-render-html@$reactNativeRenderHTMLVersion" react-native-webview
+    deps+=("react-native-render-html@$reactNativeRenderHTMLVersion" react-native-webview)
   fi
-  popd || exit 2
+  if [ "${#deps[@]}" -gt 0 ]; then
+    echo -e "\e[1mInstalling dependencies for version $version\e[22m"
+    npm install --save-exact "${deps[@]}"
+  fi
+  if [ "${#devDependencies[@]}" -gt 0 ]; then
+    echo -e "\e[1mInstalling devDependencies for version $version\e[22m"
+    npm install --save-exact -D "${devDependencies[@]}"
+  fi
+  popd >/dev/null || exit 2
 }
 
 installTemplate() {
@@ -41,7 +49,9 @@ installOrUpdateVersion() {
     fi
   fi
   if [ -d "$versionDir" ]; then
+
     installRNRH "$version"
+    echo -e "\e[1mInstalling template for version $version\e[22m"
     installTemplate "$version"
   fi
 }
@@ -49,22 +59,15 @@ installOrUpdateVersion() {
 testVersion() {
   version="$1"
   versionDir="versions/$version"
-  pushd "$versionDir" || exit 2
-  bundle="$bundleDir/rn$version.js"
-  [ -d "$bundleDir" ] && rm -rf "$bundleDir"
-  mkdir -p "$bundleDir"/android
-  npx react-native bundle --platform android --dev false \
-    --entry-file index.js \
-    --bundle-output "$bundle" \
-    --assets-dest "$bundleDir"/android
-  ret=$?
-  [ -e "$bundle" ] && rm "$bundle"
-  popd || exit 2
+  pushd "$versionDir" >/dev/null || exit 2
+  echo -e "\e[1mStarting test for RN V$version from directory $versionDir\e[22m"
+  runTestForEachProjectRoot "$version"
+  popd >/dev/null || exit 2
   if [ $ret = 0 ]; then
-    echo -e "\e[32m✓ test passed for RN V$version\e[39m"
+    echo -e "\e[1m\e[32m✓ Test passed for RN V$version\e[39m\e[1m"
     return 0
   else
-    echo -e "\e[31m❌ test failed for RN V$version\e[39m"
+    echo -e "\e[1m\e[31m❌ Test failed for RN V$version\e[39\e[1m"
     return 1
   fi
 }
