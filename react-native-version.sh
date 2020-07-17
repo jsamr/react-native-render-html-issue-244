@@ -24,8 +24,6 @@ fi
 
 if [ $ret = 0 ]; then
     mkdir -p "$targetDir"
-    pwd
-    echo "$targetTempDir"
     if rsync -av "$targetTempDir/RnDiffApp/." "$targetDir"; then
       cd "$targetDir" || exit 2
       npm install
